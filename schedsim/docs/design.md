@@ -80,36 +80,36 @@ Handles command-line arguments and allows users to select scheduling algorithms 
 
 The project will follow a modular directory layout.
 schedsim/
+schedsim/
 ├── Makefile
 ├── README.md
 │
 ├── include/
-│ ├── process.h
-│ ├── scheduler.h
-│ ├── metrics.h
-│ └── gantt.h
+│   ├── process.h
+│   ├── scheduler.h
+│   ├── metrics.h
+│   └── gantt.h
 │
 ├── src/
-│ ├── main.c
-│ ├── process.c
-│ ├── fcfs.c
-│ ├── sjf.c
-│ ├── stcf.c
-│ ├── rr.c
-│ ├── mlfq.c
-│ ├── metrics.c
-│ ├── gantt.c
-│ └── utils.c
+│   ├── main.c
+│   ├── process.c
+│   ├── fcfs.c
+│   ├── sjf.c
+│   ├── stcf.c
+│   ├── rr.c
+│   ├── mlfq.c
+│   ├── metrics.c
+│   ├── gantt.c
+│   └── utils.c
 │
 ├── tests/
-│ ├── workload1.txt
-│ ├── workload2.txt
-│ └── test_suite.sh
+│   ├── workload1.txt
+│   ├── workload2.txt
+│   └── test_suite.sh
 │
 └── docs/
-└── design.md
-
-
+    └── design.md
+    └── mlfq_design.md
 ---
 
 # 4. Development Phases
