@@ -1,1 +1,0 @@
-# CMSC125-Lab2-Sabandal-Salmon
