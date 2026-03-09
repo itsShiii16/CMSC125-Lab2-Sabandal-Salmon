@@ -134,7 +134,7 @@ static void print_config(const SchedulerConfig *config) {
 
 int main(int argc, char *argv[]) {
     SchedulerConfig config;
-    SchedulerState state;
+    SchedulerState state = {0};
 
     if (!parse_args(argc, argv, &config)) {
         print_usage(argv[0]);
@@ -156,8 +156,11 @@ int main(int argc, char *argv[]) {
     print_config(&config);
     print_processes(state.processes, state.process_count);
 
-    printf("\nCommit 2 status: CLI and workload loading are working.\n");
-    printf("Scheduling execution will be added in the next commit.\n");
+    if (config.algorithm == ALG_FCFS) {
+        schedule_fcfs(&state);
+    } else {
+        printf("\nSelected algorithm is not implemented yet.\n");
+    }
 
     return 0;
 }

@@ -3,6 +3,7 @@
 
 #include "process.h"
 
+/* Supported scheduling algorithms */
 typedef enum {
     ALG_NONE,
     ALG_FCFS,
@@ -12,6 +13,8 @@ typedef enum {
     ALG_MLFQ
 } Algorithm;
 
+
+/* Configuration parsed from CLI arguments */
 typedef struct {
     Algorithm algorithm;
     char input_file[256];
@@ -20,10 +23,16 @@ typedef struct {
     int compare_mode;
 } SchedulerConfig;
 
+
+/* Global scheduler simulation state */
 typedef struct {
     Process processes[MAX_PROCESSES];
     int process_count;
     int current_time;
 } SchedulerState;
+
+
+/* FCFS scheduler implementation */
+void schedule_fcfs(SchedulerState *state);
 
 #endif
