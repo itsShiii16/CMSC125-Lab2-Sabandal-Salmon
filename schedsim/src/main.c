@@ -158,6 +158,8 @@ int main(int argc, char *argv[]) {
 
     if (config.algorithm == ALG_FCFS) {
         schedule_fcfs(&state);
+    } else if (config.algorithm == ALG_SJF) {
+        schedule_sjf(&state);
     } else {
         printf("\nSelected algorithm is not implemented yet.\n");
     }
