@@ -20,6 +20,8 @@ The simulator will support the following scheduling algorithms:
 
 The simulator will also generate ASCII Gantt charts to visualize execution timelines and provide comparison outputs across algorithms.
 
+At the current stage of development, the simulator already supports the First-Come First-Serve (FCFS) and Shortest Job First (SJF) . The system can successfully load workload files, execute these algorithms, and compute performance metrics for each process. The remaining algorithms will be implemented in the next development phases.
+
 ---
 
 # 2. Project Architecture
@@ -58,6 +60,15 @@ Algorithms:
 - RR (preemptive)
 - MLFQ (adaptive priority scheduler)
 
+#### Currently implemented algorithms:
+- FCFS (First-Come First-Serve) – non-preemptive
+- SJF (Shortest Job First) – non-preemptive
+
+#### Planned algorithms not yet Implemented:
+- STCF (Shortest Time to Completion First) – preemptive
+- RR (Round Robin) – preemptive with configurable time quantum
+- MLFQ (Multi-Level Feedback Queue) – adaptive priority scheduler
+
 ### Metrics Module
 Calculates performance statistics for each process and averages across workloads.
 
@@ -79,6 +90,7 @@ Handles command-line arguments and allows users to select scheduling algorithms 
 
 
 The project will follow a modular directory layout.
+```
 schedsim/
 schedsim/
 ├── Makefile
@@ -110,20 +122,41 @@ schedsim/
 └── docs/
     └── design.md
     └── mlfq_design.md
+```
 ---
 
-# 4. Development Phases
+---
+
+# 4. Current Implementation Status
+
+At the current stage of development, several core components of the CPU scheduling simulator have already been implemented.
+
+Completed features include:
+- Modular project repository structure
+- Process data structures and workload loader
+- Command-line interface for configuring the simulator
+- FCFS scheduling algorithm
+- SJF scheduling algorithm
+- Scheduling metrics computation
+- Average turnaround, waiting, and response time calculations
+- Test workload files for validation
+- Makefile build system for compiling the project
+
+The simulator can now successfully compile, load workload files, execute scheduling algorithms, and compute performance metrics.
+
+---
+
+# 5. Development Phases
 
 The laboratory activity follows a four-week development timeline consisting of progress reports and a final defense.
 
----
+## Phase 1 — System Design and Setup
+### Week 1
 
-# Phase 1 — System Design and Setup
-Week 1
+#### Objective: 
+- Establish the architectural foundation of the simulator.
 
-Objective: Establish the architectural foundation of the simulator.
-
-Tasks:
+#### Tasks:
 - Analyze scheduling requirements
 - Design system architecture
 - Create repository structure
@@ -133,48 +166,51 @@ Tasks:
 - Set up Makefile build system
 - Create initial documentation
 
-Deliverables:
+#### Deliverables:
 - Project folder structure
 - Initial commits in repository
 - Design documentation (`design.md`)
 - Process data structure definition
 
-Expected Output:
-A compilable program skeleton capable of loading workloads.
+#### Expected Output:
+- A compilable program skeleton capable of loading workloads.
 
 ---
 
-# Phase 2 — Functional Prototype
-Week 2
+## Phase 2 — Functional Prototype
+### Week 2
 
-Objective: Implement core scheduling algorithms and the simulation engine.
+#### Objective: 
+- Implement core scheduling algorithms and the simulation engine.
 
-Tasks:
+#### Tasks:
 - Implement simulation time loop
 - Implement ready queue logic
 - Implement FCFS scheduler
 - Implement SJF scheduler
-- Implement STCF scheduler
-- Implement Round Robin scheduler
 - Implement command-line argument parsing
 
-Deliverables:
+#### Status:
+- FCFS and SJF schedulers have been successfully implemented and verified using multiple workload tests. Remaining algorithms will be implemented in the next phase.
+
+#### Deliverables:
 - Functional prototype
 - Working implementations of basic algorithms
 - Documented source code
 - Demonstration of scheduler outputs
 
-Expected Output:
-Simulator capable of running scheduling algorithms and displaying execution traces.
+#### Expected Output:
+- Simulator capable of running scheduling algorithms and displaying execution traces.
 
 ---
 
-# Phase 3 — Complete Implementation
-Week 3
+## Phase 3 — Complete Implementation
+### Week 3
 
-Objective: Extend the simulator with metrics, visualization, and advanced scheduling.
+#### Objective: 
+- Extend the simulator with metrics, visualization, and advanced scheduling.
 
-Tasks:
+#### Tasks:
 - Implement scheduling metrics calculations
 - Implement ASCII Gantt chart generation
 - Implement comparison mode across algorithms
@@ -183,23 +219,24 @@ Tasks:
 - Implement queue demotion logic
 - Implement MLFQ allotment tracking
 
-Deliverables:
+#### Deliverables:
 - Full algorithm implementations
 - Metrics output
 - Visualization of scheduling results
 - Test workloads and validation
 
-Expected Output:
-Fully functional simulator capable of analyzing scheduling performance.
+#### Expected Output:
+- Fully functional simulator capable of analyzing scheduling performance.
 
 ---
 
-# Phase 4 — Testing and Defense Preparation
-Week 4
+## Phase 4 — Testing and Defense Preparation
+### Week 4
 
-Objective: Validate correctness and prepare for laboratory defense.
+#### Objective:
+- Validate correctness and prepare for laboratory defense.
 
-Tasks:
+#### Tasks:
 - Implement automated test suite
 - Test edge cases
 - Verify correctness of scheduling algorithms
@@ -208,19 +245,19 @@ Tasks:
 - Prepare screenshots and logs
 - Finalize documentation
 
-Deliverables:
+#### Deliverables:
 - Automated test scripts
 - Test workload files
 - Output logs
 - Repository ready for submission
 - Defense-ready implementation
 
-Expected Output:
-Stable simulator implementation ready for demonstration and evaluation.
+#### Expected Output:
+- Stable simulator implementation ready for demonstration and evaluation.
 
 ---
 
-# 5. Testing Strategy
+# 6. Testing Strategy
 
 Testing will include both correctness verification and edge-case analysis.
 
@@ -239,7 +276,7 @@ The automated test suite will run each scheduling algorithm and verify expected 
 
 ---
 
-# 6. Future Improvements
+# 7. Future Improvements
 
 Potential improvements beyond the lab requirements include:
 
@@ -250,7 +287,7 @@ Potential improvements beyond the lab requirements include:
 
 ---
 
-# 7. Summary
+# 8. Summary
 
 This project implements a modular CPU scheduling simulator that demonstrates the behavior and trade-offs of different scheduling algorithms. The phased development plan ensures that the system is built incrementally, allowing for testing, iteration, and refinement throughout the development process.
 
