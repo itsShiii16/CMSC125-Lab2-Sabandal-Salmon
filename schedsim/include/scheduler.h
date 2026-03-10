@@ -32,7 +32,8 @@ typedef struct {
 } SchedulerState;
 
 
-/* FCFS scheduler implementation */
+/* FCFS and sjf scheduler implementation */
 void schedule_fcfs(SchedulerState *state);
+void schedule_sjf(SchedulerState *state);
 
 #endif
