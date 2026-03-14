@@ -36,5 +36,6 @@ typedef struct {
 void schedule_fcfs(SchedulerState *state);
 void schedule_sjf(SchedulerState *state);
 void schedule_stcf(SchedulerState *state);
+void schedule_rr(SchedulerState *state, int quantum);
 
 #endif

@@ -162,6 +162,8 @@ int main(int argc, char *argv[]) {
         schedule_sjf(&state);
     } else if (config.algorithm == ALG_STCF) {
         schedule_stcf(&state);
+    } else if (config.algorithm == ALG_RR) {
+        schedule_rr(&state, config.quantum);
     } else {
         printf("\nSelected algorithm is not implemented yet.\n");
     }
