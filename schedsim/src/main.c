@@ -164,6 +164,8 @@ int main(int argc, char *argv[]) {
         schedule_stcf(&state);
     } else if (config.algorithm == ALG_RR) {
         schedule_rr(&state, config.quantum);
+    } else if (config.algorithm == ALG_MLFQ) {
+        schedule_mlfq(&state, config.mlfq_config_file);
     } else {
         printf("\nSelected algorithm is not implemented yet.\n");
     }
