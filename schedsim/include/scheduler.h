@@ -18,6 +18,8 @@ typedef enum {
 typedef struct {
     Algorithm algorithm;
     char input_file[256];
+    char process_input[1024];
+    int use_inline_input;
     char mlfq_config_file[256];
     int quantum;
     int compare_mode;

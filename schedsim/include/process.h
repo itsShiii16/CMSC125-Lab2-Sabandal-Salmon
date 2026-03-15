@@ -23,6 +23,9 @@ typedef struct {
 /* Loads processes from a workload file */
 int load_processes(const char *filename, Process processes[]);
 
+/* Loads processes from a semicolon-separated inline string */
+int parse_processes_from_string(const char *input, Process processes[]);
+
 /* Prints processes for debugging / verification */
 void print_processes(Process processes[], int count);
 
