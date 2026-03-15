@@ -4,6 +4,7 @@
 
 #include "../include/process.h"
 #include "../include/scheduler.h"
+#include "../include/checker.h"
 
 static void print_usage(const char *program_name) {
     printf("Usage:\n");
@@ -169,6 +170,8 @@ int main(int argc, char *argv[]) {
     } else {
         printf("\nSelected algorithm is not implemented yet.\n");
     }
+
+    validate_schedule(state.processes, state.process_count);
 
     return 0;
 }
