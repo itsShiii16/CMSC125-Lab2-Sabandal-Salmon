@@ -28,6 +28,17 @@ int validate_schedule(Process processes[], int count)
             printf("ERROR: Waiting time mismatch for %s\n", p->pid);
             valid = 0;
         }
+
+        if (p->response_time != p->start_time - p->arrival_time) {
+            printf("ERROR: Response time mismatch for %s\n", p->pid);
+            valid = 0;
+        }
+    }
+
+    if (valid) {
+        printf("\nSchedule validation PASSED\n");
+    } else {
+        printf("\nSchedule validation FAILED\n");
     }
 
     return valid;
