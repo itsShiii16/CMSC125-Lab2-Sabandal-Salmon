@@ -18,6 +18,16 @@ int validate_schedule(Process processes[], int count)
             printf("ERROR: Process %s finished before it started\n", p->pid);
             valid = 0;
         }
+
+        if (p->turnaround_time != p->finish_time - p->arrival_time) {
+            printf("ERROR: Turnaround mismatch for %s\n", p->pid);
+            valid = 0;
+        }
+
+        if (p->waiting_time != p->turnaround_time - p->burst_time) {
+            printf("ERROR: Waiting time mismatch for %s\n", p->pid);
+            valid = 0;
+        }
     }
 
     return valid;
