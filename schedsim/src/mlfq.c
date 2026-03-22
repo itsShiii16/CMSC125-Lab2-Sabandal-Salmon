@@ -2,6 +2,7 @@
 
 #include "../include/process.h"
 #include "../include/scheduler.h"
+#include "../include/metrics.h"
 
 #define Q0_QUANTUM 2
 #define Q1_QUANTUM 4
@@ -14,7 +15,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
     int n = state->process_count;
 
     int completed = 0;
-    int current_time = 0;
+    state->current_time = 0;
 
     int queue_level[MAX_PROCESSES];
     int inserted[MAX_PROCESSES];
@@ -30,13 +31,12 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
     }
 
     while (completed < n) {
-
         int selected = -1;
         int highest_priority = 3;
 
         /* Add newly arrived processes to highest priority queue */
         for (int i = 0; i < n; i++) {
-            if (processes[i].arrival_time <= current_time &&
+            if (processes[i].arrival_time <= state->current_time &&
                 processes[i].remaining_time > 0 &&
                 !inserted[i]) {
                 queue_level[i] = 0;
@@ -50,7 +50,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
                 if (inserted[i] &&
                     processes[i].remaining_time > 0 &&
                     queue_level[i] == level &&
-                    processes[i].arrival_time <= current_time) {
+                    processes[i].arrival_time <= state->current_time) {
                     selected = i;
                     highest_priority = level;
                     break;
@@ -63,14 +63,14 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
 
         /* CPU idle */
         if (selected == -1) {
-            current_time++;
+            state->current_time++;
             continue;
         }
 
         Process *p = &processes[selected];
 
         if (p->start_time == -1) {
-            p->start_time = current_time;
+            p->start_time = state->current_time;
         }
 
         int time_slice;
@@ -88,11 +88,11 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
         }
 
         p->remaining_time -= time_slice;
-        current_time += time_slice;
+        state->current_time += time_slice;
 
         /* Add any newly arrived processes during execution */
         for (int i = 0; i < n; i++) {
-            if (processes[i].arrival_time <= current_time &&
+            if (processes[i].arrival_time <= state->current_time &&
                 processes[i].remaining_time > 0 &&
                 !inserted[i]) {
                 queue_level[i] = 0;
@@ -102,11 +102,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
 
         if (p->remaining_time == 0) {
             completed++;
-
-            p->finish_time = current_time;
-            p->turnaround_time = p->finish_time - p->arrival_time;
-            p->waiting_time = p->turnaround_time - p->burst_time;
-            p->response_time = p->start_time - p->arrival_time;
+            p->finish_time = state->current_time;
         } else {
             /* demote process if not yet finished */
             if (queue_level[selected] < 2) {
@@ -115,33 +111,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
         }
     }
 
-    printf("\nResults\n");
-    printf("-----------------------------------------------------\n");
-    printf("PID\tAT\tBT\tST\tFT\tTT\tWT\tRT\n");
-
-    float total_tt = 0;
-    float total_wt = 0;
-    float total_rt = 0;
-
-    for (int i = 0; i < n; i++) {
-        Process *p = &processes[i];
-
-        printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
-               p->pid,
-               p->arrival_time,
-               p->burst_time,
-               p->start_time,
-               p->finish_time,
-               p->turnaround_time,
-               p->waiting_time,
-               p->response_time);
-
-        total_tt += p->turnaround_time;
-        total_wt += p->waiting_time;
-        total_rt += p->response_time;
-    }
-
-    printf("\nAverage Turnaround Time: %.2f\n", total_tt / n);
-    printf("Average Waiting Time   : %.2f\n", total_wt / n);
-    printf("Average Response Time  : %.2f\n", total_rt / n);
+    compute_metrics(processes, n);
+    print_results(processes, n);
+    print_averages(processes, n);
 }
