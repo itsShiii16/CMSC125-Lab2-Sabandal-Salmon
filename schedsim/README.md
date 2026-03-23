@@ -1,156 +1,296 @@
 # CPU Scheduling Simulator
+
 ### CMSC 125 – Operating Systems
+
 **University of the Philippines Visayas**
 
 ---
 
 ## Overview
-Modern operating systems rely on CPU scheduling algorithms to decide which process runs at any given time. Different scheduling strategies optimize different goals such as fairness, responsiveness, and throughput.
 
-This simulator, written in **C**, allows experimentation with several scheduling policies by executing workloads consisting of processes with arrival times and burst times. It computes performance metrics and generates ASCII Gantt charts to visualize execution timelines.
+Modern operating systems rely on CPU scheduling algorithms to determine which process executes at any given time. Different strategies optimize fairness, responsiveness, and throughput.
+
+This project is a **CPU Scheduling Simulator written in C** that allows users to experiment with multiple scheduling algorithms using either **input files** or **inline command-line input**. It computes performance metrics and generates **ASCII Gantt charts** for visualization.
 
 ---
 
 ## Features
-* **Multi-Algorithm Simulation:** Support for preemptive and non-preemptive policies.
-* **Discrete-Time Engine:** High-fidelity simulation of CPU cycles.
-* **Visualizations:** Automatic generation of ASCII Gantt charts.
-* **Analytics:** Detailed performance metrics (Turnaround, Waiting, and Response times).
-* **Comparative Mode:** Run multiple algorithms against the same workload for analysis.
-* **Extensible:** Modular architecture for easy addition of new algorithms.
+
+* Multi-Algorithm Simulation (FCFS, SJF, STCF, RR, MLFQ)
+* File-based and Inline Input Support
+* Discrete-Time Simulation Engine
+* ASCII Gantt Chart Visualization
+* Performance Metrics (TT, WT, RT)
+* MLFQ Configurable via File
+* Validation Checker
+* Modular and Extensible Code Structure
 
 ---
 
 ## Supported Scheduling Algorithms
 
-| Algorithm | Type | Description |
-| :--- | :--- | :--- |
-| **FCFS** | Non-preemptive | First-Come First-Serve; processes execute in order of arrival. |
-| **SJF** | Non-preemptive | Shortest Job First; selects the process with the smallest burst time. |
-| **STCF** | Preemptive | Shortest Time to Completion First (Preemptive SJF). |
-| **RR** | Preemptive | Round Robin; each process receives a fixed time quantum. |
-| **MLFQ** | Adaptive | Multi-Level Feedback Queue with dynamic priority boosting. |
+| Algorithm | Type           | Description                       |
+| --------- | -------------- | --------------------------------- |
+| **FCFS**  | Non-preemptive | First-Come First-Serve            |
+| **SJF**   | Non-preemptive | Shortest Job First                |
+| **STCF**  | Preemptive     | Shortest Time to Completion First |
+| **RR**    | Preemptive     | Round Robin                       |
+| **MLFQ**  | Adaptive       | Multi-Level Feedback Queue        |
 
 ---
 
 ## Project Structure
 
-```text
+```
 schedsim/
-├── include/           # Header files
-│   ├── process.h      # Process structures
-│   ├── scheduler.h    # Scheduling logic definitions
-│   ├── metrics.h      # Calculation functions
-│   └── gantt.h        # Visualization logic
-├── src/               # Implementation files
-│   ├── main.c         # Entry point & CLI logic
-│   ├── fcfs.c         # First-Come First-Serve logic
-│   ├── sjf.c          # Shortest Job First logic
-│   ├── stcf.c         # Shortest Time to Completion First logic
-│   ├── rr.c           # Round Robin logic
-│   ├── mlfq.c         # Multi-Level Feedback Queue logic
-│   └── ...            # Utils and metrics
-├── tests/             # Workload samples & scripts
-│   ├── workload1.txt  # Sample process list
-│   └── test_suite.sh  # Automated testing script
-├── docs/              # Documentation
-│   └── design.md      # Architecture & Design specs
-├── Makefile           # Build system
-└── README.md          # Project overview
+├── include/
+│   ├── process.h
+│   ├── scheduler.h
+│   ├── metrics.h
+│   ├── utils.h
+│   ├── gantt.h
+│   ├── mlfq.h
+│
+├── src/
+│   ├── main.c
+│   ├── process.c
+│   ├── parser.c
+│   ├── checker.c
+│   ├── metrics.c
+│   ├── utils.c
+│   ├── gantt.c
+│   ├── fcfs.c
+│   ├── sjf.c
+│   ├── stcf.c
+│   ├── rr.c
+│   ├── mlfq.c
+│   ├── mlfq_config.c
+│
+├── tests/
+│   ├── workload1.txt
+│   ├── workload2.txt
+│   ├── mlfq.txt
+│
+├── docs/
+│   └── design.md
+│
+├── Makefile
+└── README.md
 ```
 
 ---
 
-## Getting Started
+## System Design Hierarchy
 
-### Compilation
-The project uses `gcc` and `make`.
+### High-Level Flow
 
-```bash
-# Build the simulator
-make
-
-# Clean build artifacts
-make clean
-
-# Run automated tests
-make test
+```
+User Input (CLI / File / Inline)
+        ↓
+Argument Parsing (main.c)
+        ↓
+Workload Loading
+  ├── File Input (process.c)
+  └── Inline Input (parser.c)
+        ↓
+Scheduler Core (scheduler.h)
+        ↓
+Selected Algorithm
+  ├── FCFS
+  ├── SJF
+  ├── STCF
+  ├── RR
+  └── MLFQ
+        ↓
+Execution Engine (time simulation)
+        ↓
+Metrics Computation (metrics.c)
+        ↓
+Validation Checker (checker.c)
+        ↓
+Gantt Chart Generator (gantt.c)
+        ↓
+Console Output (results + visualization)
 ```
 
-### Usage
-Run the executable with the desired algorithm and input file.
+---
 
-```bash
-# Basic FCFS
+## Installation & Compilation
+
+### Requirements
+
+* GCC
+* Make
+
+### Build
+
+```
+make
+```
+
+### Clean
+
+```
+make clean
+```
+
+---
+
+## How to Run the Scheduler
+
+The simulator supports **two modes of input**:
+
+---
+
+### 1. Using Workload Files
+
+#### Format
+
+```
+PID ArrivalTime BurstTime
+```
+
+#### Example (`tests/workload1.txt`)
+
+```
+A 0 5
+B 1 3
+C 2 8
+```
+
+#### Run Commands
+
+**FCFS**
+
+```
 ./schedsim --algorithm=FCFS --input=tests/workload1.txt
+```
 
-# Round Robin (requires quantum)
-./schedsim --algorithm=RR --quantum=30 --input=tests/workload1.txt
+**SJF**
 
-# Comparison Mode
+```
+./schedsim --algorithm=SJF --input=tests/workload1.txt
+```
+
+**STCF**
+
+```
+./schedsim --algorithm=STCF --input=tests/workload1.txt
+```
+
+**Round Robin**
+
+```
+./schedsim --algorithm=RR --quantum=2 --input=tests/workload1.txt
+```
+
+**MLFQ**
+
+```
+./schedsim --algorithm=MLFQ --mlfq=tests/mlfq.txt --input=tests/workload1.txt
+```
+
+---
+
+### 2. Using Inline Input (Direct Parsing)
+
+#### Format
+
+```
+"PID Arrival Burst; PID Arrival Burst; ..."
+```
+
+#### Example
+
+```
+./schedsim --algorithm=SJF --processes="A 0 5; B 1 3; C 2 8"
+```
+
+#### More Examples
+
+**Round Robin**
+
+```
+./schedsim --algorithm=RR --quantum=2 --processes="A 0 5; B 1 3; C 2 8"
+```
+
+**MLFQ**
+
+```
+./schedsim --algorithm=MLFQ --mlfq=tests/mlfq.txt --processes="A 0 5; B 1 3; C 2 8"
+```
+
+---
+
+### 3. Compare Mode
+
+Run all algorithms on one workload:
+
+```
 ./schedsim --compare tests/workload1.txt
 ```
 
 ---
 
-## Input Format
-Input files define process behaviors. Lines starting with `#` are ignored.
+## MLFQ Configuration File
 
-**Format:** `PID ArrivalTime BurstTime`
-```text
-# PID ArrivalTime BurstTime
-A 0 240
-B 0 180
-C 20 150
+Example (`tests/mlfq.txt`):
+
+```
+queues=3
+q0=2
+q1=4
+q2=8
+boost=50
 ```
 
 ---
 
-## Example Execution
-**Running FCFS Scheduler**
+## Example Output
 
 ### Gantt Chart
-```text
-[AAAAAAAABBBBBBBCCCCCC]
-0       100     200     300
+
+```
+| A | B | C |
+0    5    8    10
 ```
 
 ### Metrics Table
-| Process | AT | BT | FT | TT | WT | RT |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **A** | 0 | 240 | 240 | 240 | 0 | 0 |
-| **B** | 0 | 180 | 420 | 420 | 240 | 240 |
-| **C** | 20 | 150 | 570 | 550 | 400 | 400 |
 
-> **Averages:**
-> * **Avg Turnaround:** 403ms
-> * **Avg Waiting:** 213ms
-> * **Avg Response:** 213ms
+```
+PID AT BT ST FT TT WT RT
+A   0  5  0  5  5  0  0
+B   1  3  5  8  7  4  4
+C   2  8  8 16 14  6  6
+```
 
 ---
 
 ## Metrics Explained
 
-The simulator uses the following formulas for performance calculation:
-
-* **Finish Time (FT):** The clock time when a process completes.
-* **Turnaround Time (TT):** `TT = Finish Time - Arrival Time`
-* **Waiting Time (WT):** `WT = Turnaround Time - Burst Time`
-* **Response Time (RT):** `RT = First Execution Time - Arrival Time`
+* **Turnaround Time (TT)** = Finish Time - Arrival Time
+* **Waiting Time (WT)** = TT - Burst Time
+* **Response Time (RT)** = First Start Time - Arrival Time
 
 ---
 
-## Known Limitations
-* Supports **single CPU** environments only.
-* Workloads must strictly adhere to the defined space-separated format.
-* Gantt charts may require horizontal scrolling for extremely large workloads.
+## Limitations
+
+* Single CPU simulation only
+* No I/O blocking or multi-core support
+* ASCII-only visualization
 
 ---
 
 ## Authors
-**CMSC 125 Students** | University of the Philippines Visayas
-* **Sherwin Paul Sabandal**
-* **Antonio Gabriel Salmon**
+
+* Sherwin Paul Sabandal
+* Antonio Gabriel Salmon
+
+University of the Philippines Visayas
 
 ---
-**License:** This project is developed for academic purposes as part of the CMSC 125 Operating Systems laboratory activities.
+
+## License
+
+This project is developed for academic purposes under CMSC 125 – Operating Systems.
