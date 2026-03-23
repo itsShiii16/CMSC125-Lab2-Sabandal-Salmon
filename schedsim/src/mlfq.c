@@ -4,16 +4,18 @@
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
 #include "../include/gantt.h"
-
-#define Q0_QUANTUM 2
-#define Q1_QUANTUM 4
-#define Q2_QUANTUM 100000
+#include "../include/mlfq.h"
 
 void schedule_mlfq(SchedulerState *state, const char *config_file) {
-    (void)config_file;
-
     Process *processes = state->processes;
     int n = state->process_count;
+
+    MLFQConfig config;
+
+    if (!load_mlfq_config(config_file, &config)) {
+        printf("Failed to load MLFQ config file.\n");
+        return;
+    }
 
     int completed = 0;
     state->current_time = 0;
@@ -36,9 +38,9 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
 
     while (completed < n) {
         int selected = -1;
-        int highest_priority = 3;
+        int highest_priority = config.num_queues;
 
-        /* Add newly arrived processes */
+        /* Add newly arrived processes to highest priority queue */
         for (int i = 0; i < n; i++) {
             if (processes[i].arrival_time <= state->current_time &&
                 processes[i].remaining_time > 0 &&
@@ -48,8 +50,8 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
             }
         }
 
-        /* Select highest priority process */
-        for (int level = 0; level < 3; level++) {
+        /* Select process from highest non-empty queue */
+        for (int level = 0; level < config.num_queues; level++) {
             for (int i = 0; i < n; i++) {
                 if (inserted[i] &&
                     processes[i].remaining_time > 0 &&
@@ -60,7 +62,10 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
                     break;
                 }
             }
-            if (selected != -1) break;
+
+            if (selected != -1) {
+                break;
+            }
         }
 
         /* CPU idle */
@@ -76,11 +81,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
         }
 
         int start = state->current_time;
-
-        int time_slice;
-        if (highest_priority == 0) time_slice = Q0_QUANTUM;
-        else if (highest_priority == 1) time_slice = Q1_QUANTUM;
-        else time_slice = Q2_QUANTUM;
+        int time_slice = config.quantum[highest_priority];
 
         if (p->remaining_time < time_slice) {
             time_slice = p->remaining_time;
@@ -108,8 +109,8 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
             completed++;
             p->finish_time = state->current_time;
         } else {
-            /* Demote process */
-            if (queue_level[selected] < 2) {
+            /* Demote process if not yet finished */
+            if (queue_level[selected] < config.num_queues - 1) {
                 queue_level[selected]++;
             }
         }

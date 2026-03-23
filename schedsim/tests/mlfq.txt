@@ -1,0 +1,5 @@
+queues=3
+q0=2
+q1=4
+q2=8
+boost=50
