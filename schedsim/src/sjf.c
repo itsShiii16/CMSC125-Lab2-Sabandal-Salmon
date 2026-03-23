@@ -4,6 +4,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
+#include "../include/gantt.h"
 
 void schedule_sjf(SchedulerState *state) {
     Process *processes = state->processes;
@@ -11,6 +12,9 @@ void schedule_sjf(SchedulerState *state) {
     int completed = 0;
 
     state->current_time = 0;
+
+    /* Initialize Gantt chart */
+    init_gantt(state->gantt_chart, &state->gantt_count);
 
     printf("\nRunning SJF Scheduler\n");
     printf("-----------------------------\n");
@@ -38,15 +42,23 @@ void schedule_sjf(SchedulerState *state) {
 
         Process *p = &processes[shortest_index];
 
+        int start = state->current_time;
+
         p->start_time = state->current_time;
         state->current_time += p->burst_time;
         p->finish_time = state->current_time;
 
+        int end = state->current_time;
+
         p->remaining_time = 0;
         completed++;
+
+        /* Record Gantt entry */
+        add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
     }
 
     compute_metrics(processes, n);
     print_results(processes, n);
     print_averages(processes, n);
+    print_gantt_chart(state->gantt_chart, state->gantt_count);
 }

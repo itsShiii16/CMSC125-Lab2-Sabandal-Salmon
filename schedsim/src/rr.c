@@ -3,6 +3,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
+#include "../include/gantt.h"
 
 void schedule_rr(SchedulerState *state, int quantum) {
     Process *processes = state->processes;
@@ -10,6 +11,9 @@ void schedule_rr(SchedulerState *state, int quantum) {
 
     state->current_time = 0;
     int completed = 0;
+
+    /* Initialize Gantt chart */
+    init_gantt(state->gantt_chart, &state->gantt_count);
 
     printf("\nRunning Round Robin Scheduler\n");
     printf("-----------------------------\n");
@@ -34,6 +38,7 @@ void schedule_rr(SchedulerState *state, int quantum) {
                     p->start_time = state->current_time;
                 }
 
+                int start = state->current_time;
                 int time_slice = quantum;
 
                 if (p->remaining_time < quantum) {
@@ -42,6 +47,11 @@ void schedule_rr(SchedulerState *state, int quantum) {
 
                 p->remaining_time -= time_slice;
                 state->current_time += time_slice;
+
+                int end = state->current_time;
+
+                /* Record Gantt entry */
+                add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
 
                 if (p->remaining_time == 0) {
                     completed++;
@@ -59,4 +69,5 @@ void schedule_rr(SchedulerState *state, int quantum) {
     compute_metrics(processes, n);
     print_results(processes, n);
     print_averages(processes, n);
+    print_gantt_chart(state->gantt_chart, state->gantt_count);
 }

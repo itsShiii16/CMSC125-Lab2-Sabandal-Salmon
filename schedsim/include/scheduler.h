@@ -2,6 +2,7 @@
 #define SCHEDULER_H
 
 #include "process.h"
+#include "gantt.h"
 
 /* Supported scheduling algorithms */
 typedef enum {
@@ -12,7 +13,6 @@ typedef enum {
     ALG_RR,
     ALG_MLFQ
 } Algorithm;
-
 
 /* Configuration parsed from CLI arguments */
 typedef struct {
@@ -25,16 +25,17 @@ typedef struct {
     int compare_mode;
 } SchedulerConfig;
 
-
 /* Global scheduler simulation state */
 typedef struct {
     Process processes[MAX_PROCESSES];
     int process_count;
     int current_time;
+
+    GanttEntry gantt_chart[MAX_GANTT_ENTRIES];
+    int gantt_count;
 } SchedulerState;
 
-
-/* FCFS and sjf scheduler implementation */
+/* Scheduler implementations */
 void schedule_fcfs(SchedulerState *state);
 void schedule_sjf(SchedulerState *state);
 void schedule_stcf(SchedulerState *state);

@@ -4,6 +4,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
+#include "../include/gantt.h"
 
 void schedule_stcf(SchedulerState *state) {
     Process *processes = state->processes;
@@ -11,6 +12,9 @@ void schedule_stcf(SchedulerState *state) {
 
     int completed = 0;
     state->current_time = 0;
+
+    /* Initialize Gantt chart */
+    init_gantt(state->gantt_chart, &state->gantt_count);
 
     printf("\nRunning STCF Scheduler\n");
     printf("-----------------------------\n");
@@ -36,7 +40,7 @@ void schedule_stcf(SchedulerState *state) {
             }
         }
 
-        /* if no process available */
+        /* CPU idle */
         if (shortest == -1) {
             state->current_time++;
             continue;
@@ -49,9 +53,16 @@ void schedule_stcf(SchedulerState *state) {
             p->start_time = state->current_time;
         }
 
-        /* execute process for 1 time unit */
+        int start = state->current_time;
+
+        /* execute for 1 unit */
         p->remaining_time--;
         state->current_time++;
+
+        int end = state->current_time;
+
+        /* record Gantt entry */
+        add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
 
         /* if process finished */
         if (p->remaining_time == 0) {
@@ -63,4 +74,5 @@ void schedule_stcf(SchedulerState *state) {
     compute_metrics(processes, n);
     print_results(processes, n);
     print_averages(processes, n);
+    print_gantt_chart(state->gantt_chart, state->gantt_count);
 }

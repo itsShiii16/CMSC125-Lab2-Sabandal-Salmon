@@ -3,6 +3,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
+#include "../include/gantt.h"
 
 #define Q0_QUANTUM 2
 #define Q1_QUANTUM 4
@@ -20,6 +21,9 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
     int queue_level[MAX_PROCESSES];
     int inserted[MAX_PROCESSES];
 
+    /* Initialize Gantt chart */
+    init_gantt(state->gantt_chart, &state->gantt_count);
+
     printf("\nRunning MLFQ Scheduler\n");
     printf("-----------------------------\n");
 
@@ -34,7 +38,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
         int selected = -1;
         int highest_priority = 3;
 
-        /* Add newly arrived processes to highest priority queue */
+        /* Add newly arrived processes */
         for (int i = 0; i < n; i++) {
             if (processes[i].arrival_time <= state->current_time &&
                 processes[i].remaining_time > 0 &&
@@ -44,7 +48,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
             }
         }
 
-        /* Select process from highest non-empty queue */
+        /* Select highest priority process */
         for (int level = 0; level < 3; level++) {
             for (int i = 0; i < n; i++) {
                 if (inserted[i] &&
@@ -56,9 +60,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
                     break;
                 }
             }
-            if (selected != -1) {
-                break;
-            }
+            if (selected != -1) break;
         }
 
         /* CPU idle */
@@ -73,15 +75,12 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
             p->start_time = state->current_time;
         }
 
-        int time_slice;
+        int start = state->current_time;
 
-        if (highest_priority == 0) {
-            time_slice = Q0_QUANTUM;
-        } else if (highest_priority == 1) {
-            time_slice = Q1_QUANTUM;
-        } else {
-            time_slice = Q2_QUANTUM;
-        }
+        int time_slice;
+        if (highest_priority == 0) time_slice = Q0_QUANTUM;
+        else if (highest_priority == 1) time_slice = Q1_QUANTUM;
+        else time_slice = Q2_QUANTUM;
 
         if (p->remaining_time < time_slice) {
             time_slice = p->remaining_time;
@@ -90,7 +89,12 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
         p->remaining_time -= time_slice;
         state->current_time += time_slice;
 
-        /* Add any newly arrived processes during execution */
+        int end = state->current_time;
+
+        /* Record Gantt entry */
+        add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
+
+        /* Add new arrivals during execution */
         for (int i = 0; i < n; i++) {
             if (processes[i].arrival_time <= state->current_time &&
                 processes[i].remaining_time > 0 &&
@@ -104,7 +108,7 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
             completed++;
             p->finish_time = state->current_time;
         } else {
-            /* demote process if not yet finished */
+            /* Demote process */
             if (queue_level[selected] < 2) {
                 queue_level[selected]++;
             }
@@ -114,4 +118,5 @@ void schedule_mlfq(SchedulerState *state, const char *config_file) {
     compute_metrics(processes, n);
     print_results(processes, n);
     print_averages(processes, n);
+    print_gantt_chart(state->gantt_chart, state->gantt_count);
 }
