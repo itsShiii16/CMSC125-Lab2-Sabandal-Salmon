@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "../include/parser.h"
 
@@ -34,6 +36,33 @@ static const char *algorithm_to_string(Algorithm algorithm) {
     }
 }
 
+static int parse_positive_int(const char *value, int *out) {
+    char *endptr;
+    long parsed;
+
+    errno = 0;
+    parsed = strtol(value, &endptr, 10);
+
+    if (value == endptr) {
+        return 0;
+    }
+
+    if (*endptr != '\0') {
+        return 0;
+    }
+
+    if (errno == ERANGE || parsed > INT_MAX || parsed < INT_MIN) {
+        return 0;
+    }
+
+    if (parsed <= 0) {
+        return 0;
+    }
+
+    *out = (int)parsed;
+    return 1;
+}
+
 void print_usage(const char *program_name) {
     printf("Usage:\n");
     printf("  %s --algorithm=<FCFS|SJF|STCF|RR|MLFQ> --input=<file>\n", program_name);
@@ -54,23 +83,32 @@ int parse_args(int argc, char *argv[], SchedulerConfig *config) {
         if (strncmp(argv[i], "--algorithm=", 12) == 0) {
             const char *value = argv[i] + 12;
             config->algorithm = parse_algorithm(value);
+
         } else if (strncmp(argv[i], "--input=", 8) == 0) {
             const char *value = argv[i] + 8;
             strncpy(config->input_file, value, sizeof(config->input_file) - 1);
             config->input_file[sizeof(config->input_file) - 1] = '\0';
             config->use_inline_input = 0;
+
         } else if (strncmp(argv[i], "--processes=", 12) == 0) {
             const char *value = argv[i] + 12;
             strncpy(config->process_input, value, sizeof(config->process_input) - 1);
             config->process_input[sizeof(config->process_input) - 1] = '\0';
             config->use_inline_input = 1;
+
         } else if (strncmp(argv[i], "--quantum=", 10) == 0) {
             const char *value = argv[i] + 10;
-            config->quantum = atoi(value);
+
+            if (!parse_positive_int(value, &config->quantum)) {
+                fprintf(stderr, "Error: invalid --quantum value '%s'. Expected a positive integer.\n", value);
+                return 0;
+            }
+
         } else if (strncmp(argv[i], "--mlfq=", 7) == 0) {
             const char *value = argv[i] + 7;
             strncpy(config->mlfq_config_file, value, sizeof(config->mlfq_config_file) - 1);
             config->mlfq_config_file[sizeof(config->mlfq_config_file) - 1] = '\0';
+
         } else if (strcmp(argv[i], "--compare") == 0) {
             config->compare_mode = 1;
 
@@ -81,6 +119,7 @@ int parse_args(int argc, char *argv[], SchedulerConfig *config) {
             } else {
                 return 0;
             }
+
         } else {
             return 0;
         }
@@ -127,7 +166,9 @@ void print_config(const SchedulerConfig *config) {
         printf("Algorithm : %s\n", algorithm_to_string(config->algorithm));
     }
 
-    printf("Input     : %s\n", config->input_file);
+    if (config->input_file[0] != '\0') {
+        printf("Input     : %s\n", config->input_file);
+    }
 
     if (config->use_inline_input) {
         printf("Processes : %s\n", config->process_input);

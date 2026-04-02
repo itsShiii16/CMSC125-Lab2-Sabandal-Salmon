@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     }
 
     state.current_time = 0;
+
     if (config.use_inline_input) {
         state.process_count = parse_processes_from_string(config.process_input, state.processes);
     } else {
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
     } else if (config.algorithm == ALG_MLFQ) {
         schedule_mlfq(&state, config.mlfq_config_file);
     } else {
-        printf("\nSelected algorithm is not implemented yet.\n");
+        fprintf(stderr, "Error: selected algorithm is not implemented yet.\n");
     }
 
     validate_schedule(state.processes, state.process_count);
