@@ -1,4 +1,6 @@
 # PID Arrival Burst
-A 0 5
-B 2 3
-C 4 1
+A 0 240
+B 0 180
+C 20 150
+D 0 80
+E 30 130
