@@ -5,6 +5,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/metrics.h"
+#include "../include/gantt.h"
 
 /* Helper function for sorting by arrival time */
 static int compare_arrival(const void *a, const void *b) {
@@ -27,6 +28,9 @@ void schedule_fcfs(SchedulerState *state) {
 
     state->current_time = 0;
 
+    /* Initialize Gantt chart */
+    init_gantt(state->gantt_chart, &state->gantt_count);
+
     printf("\nRunning FCFS Scheduler\n");
     printf("-----------------------------\n");
 
@@ -37,13 +41,23 @@ void schedule_fcfs(SchedulerState *state) {
             state->current_time = p->arrival_time;
         }
 
+        int start = state->current_time;
+
         p->start_time = state->current_time;
         state->current_time += p->burst_time;
         p->finish_time = state->current_time;
         p->remaining_time = 0;
+
+        int end = state->current_time;
+
+        /* Record Gantt entry */
+        add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
     }
 
     compute_metrics(processes, n);
     print_results(processes, n);
     print_averages(processes, n);
+
+    /* Print Gantt chart */
+    print_gantt_chart(state->gantt_chart, state->gantt_count);
 }
