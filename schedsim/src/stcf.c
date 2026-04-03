@@ -25,6 +25,9 @@ void schedule_stcf(SchedulerState *state) {
         processes[i].start_time = -1;
     }
 
+    int last_process = -1;
+    int segment_start = 0;
+
     while (completed < n) {
         int shortest = -1;
         int shortest_time = INT_MAX;
@@ -42,6 +45,18 @@ void schedule_stcf(SchedulerState *state) {
 
         /* CPU idle */
         if (shortest == -1) {
+            /* close any running segment before idle gap */
+            if (last_process != -1) {
+                add_gantt_entry(
+                    state->gantt_chart,
+                    &state->gantt_count,
+                    processes[last_process].pid,
+                    segment_start,
+                    state->current_time
+                );
+                last_process = -1;
+            }
+
             state->current_time++;
             continue;
         }
@@ -53,21 +68,40 @@ void schedule_stcf(SchedulerState *state) {
             p->start_time = state->current_time;
         }
 
-        int start = state->current_time;
+        /* start a new segment if process changes */
+        if (last_process != shortest) {
+            if (last_process != -1) {
+                add_gantt_entry(
+                    state->gantt_chart,
+                    &state->gantt_count,
+                    processes[last_process].pid,
+                    segment_start,
+                    state->current_time
+                );
+            }
+
+            segment_start = state->current_time;
+            last_process = shortest;
+        }
 
         /* execute for 1 unit */
         p->remaining_time--;
         state->current_time++;
 
-        int end = state->current_time;
-
-        /* record Gantt entry */
-        add_gantt_entry(state->gantt_chart, &state->gantt_count, p->pid, start, end);
-
         /* if process finished */
         if (p->remaining_time == 0) {
             completed++;
             p->finish_time = state->current_time;
+
+            add_gantt_entry(
+                state->gantt_chart,
+                &state->gantt_count,
+                p->pid,
+                segment_start,
+                state->current_time
+            );
+
+            last_process = -1;
         }
     }
 
