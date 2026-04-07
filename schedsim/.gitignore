@@ -1,0 +1,9 @@
+# Build artifacts
+/schedsim
+*.o
+
+# Test outputs
+*.log
+
+# Editor / OS clutter
+.DS_Store
