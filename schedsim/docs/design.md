@@ -1,294 +1,101 @@
-# CPU Scheduling Simulator Design Plan
-CMSC 125 – Operating Systems  
-Laboratory Activity: CPU Scheduling Simulator
+# CPU Scheduling Simulator Design
+CMSC 125 - Operating Systems
 
-This document outlines the design strategy, implementation roadmap, and development phases for the CPU scheduling simulator. The goal of this project is to build a modular simulator written in C that implements several CPU scheduling algorithms and allows comparative analysis of their performance.
+## 1. Scope and Goals
 
----
+This project is a modular CPU scheduling simulator written in C. It simulates process execution over discrete time, computes standard scheduling metrics, and prints ASCII Gantt charts.
 
-# 1. Project Overview
+Goals:
+- Support multiple scheduling policies in one executable.
+- Allow file-based and inline process inputs.
+- Provide per-process and average metrics.
+- Enable compare mode to run all algorithms on the same workload.
 
-The simulator will execute workloads consisting of processes with arrival times and CPU burst times. The system will simulate CPU scheduling policies and compute performance metrics such as turnaround time, waiting time, and response time.
+## 2. Implemented Algorithms
 
-The simulator will support the following scheduling algorithms:
+The simulator currently implements all required algorithms:
+- FCFS (First-Come First-Serve, non-preemptive)
+- SJF (Shortest Job First, non-preemptive)
+- STCF (Shortest Time to Completion First, preemptive)
+- RR (Round Robin, preemptive, configurable quantum)
+- MLFQ (Multi-Level Feedback Queue, configurable queues/quantums/boost)
 
-- First-Come First-Serve (FCFS)
-- Shortest Job First (SJF)
-- Shortest Time to Completion First (STCF)
-- Round Robin (RR)
-- Multi-Level Feedback Queue (MLFQ)
+Each scheduler produces:
+- Metrics table (AT, BT, ST, FT, TT, WT, RT)
+- Average TT/WT/RT
+- ASCII Gantt chart
 
-The simulator will also generate ASCII Gantt charts to visualize execution timelines and provide comparison outputs across algorithms.
+## 3. Architecture
 
-At the current stage of development, the simulator already supports the First-Come First-Serve (FCFS) and Shortest Job First (SJF) . The system can successfully load workload files, execute these algorithms, and compute performance metrics for each process. The remaining algorithms will be implemented in the next development phases.
+Main modules:
+- Process loading/parsing: reads workload files or inline definitions.
+- Argument/config parser: handles CLI options and validation.
+- Scheduler implementations: one source file per algorithm.
+- Metrics module: computes TT/WT/RT and averages.
+- Gantt module: stores and prints execution segments.
+- Checker module: validates schedule consistency.
 
----
+Top-level flow:
+1. Parse CLI args.
+2. Validate config.
+3. Load processes.
+4. Run selected algorithm or compare mode.
+5. Compute and print metrics/Gantt output.
+6. Validate produced schedule.
 
-# 2. Project Architecture
+## 4. Compare Mode Design
 
-The system is designed using modular components to separate concerns and improve maintainability.
+Compare mode runs FCFS, SJF, STCF, RR, and MLFQ against the same baseline workload in a single execution.
 
-## 2.1 Core Components
+Implementation notes:
+- A baseline copy of all processes is saved before the first run.
+- Before each algorithm, process state is restored from baseline.
+- Per-run output is printed normally by each scheduler.
+- A final summary table prints average TT/WT/RT per algorithm.
+- RR defaults to quantum=2 in compare mode if not explicitly provided.
+- MLFQ defaults to tests/mlfq.txt in compare mode if not explicitly provided.
 
-The simulator is divided into the following modules:
+## 5. Repository Layout
 
-### Process Management
-Responsible for representing processes and loading workloads from input files.
-
-Responsibilities:
-- Process data structure
-- Workload file parsing
-- Process initialization
-- Tracking runtime state
-
-### Scheduling Engine
-Controls the simulation of time and determines which process runs at each time unit.
-
-Responsibilities:
-- Simulation loop
-- Process arrival handling
-- Ready queue management
-- Algorithm selection
-
-### Scheduling Algorithms
-Each scheduling algorithm is implemented as a separate module.
-
-Algorithms:
-- FCFS (non-preemptive)
-- SJF (non-preemptive)
-- STCF (preemptive)
-- RR (preemptive)
-- MLFQ (adaptive priority scheduler)
-
-#### Currently implemented algorithms:
-- FCFS (First-Come First-Serve) – non-preemptive
-- SJF (Shortest Job First) – non-preemptive
-
-#### Planned algorithms not yet Implemented:
-- STCF (Shortest Time to Completion First) – preemptive
-- RR (Round Robin) – preemptive with configurable time quantum
-- MLFQ (Multi-Level Feedback Queue) – adaptive priority scheduler
-
-### Metrics Module
-Calculates performance statistics for each process and averages across workloads.
-
-Metrics:
-- Finish Time
-- Turnaround Time
-- Waiting Time
-- Response Time
-
-### Visualization Module
-Responsible for generating ASCII Gantt charts showing process execution timelines.
-
-### CLI Interface
-Handles command-line arguments and allows users to select scheduling algorithms and configuration parameters.
-
----
-
-# 3. Repository Structure
-
-
-The project will follow a modular directory layout.
 ```
-schedsim/
 schedsim/
 ├── Makefile
 ├── README.md
-│
 ├── include/
-│   ├── process.h
-│   ├── scheduler.h
-│   ├── metrics.h
-│   └── gantt.h
-│
 ├── src/
-│   ├── main.c
-│   ├── process.c
-│   ├── fcfs.c
-│   ├── sjf.c
-│   ├── stcf.c
-│   ├── rr.c
-│   ├── mlfq.c
-│   ├── metrics.c
-│   ├── gantt.c
-│   └── utils.c
-│
 ├── tests/
-│   ├── workload1.txt
-│   ├── workload2.txt
-│   └── test_suite.sh
-│
 └── docs/
-    └── design.md
-    └── mlfq_design.md
 ```
----
 
----
+Key docs:
+- docs/design.md: overall architecture and implementation status.
+- docs/mlfq_design.md: MLFQ-specific policy and behavior.
 
-# 4. Current Implementation Status
+## 6. Testing Strategy
 
-At the current stage of development, several core components of the CPU scheduling simulator have already been implemented.
+Automated checks are provided in tests/test_suite.sh.
 
-Completed features include:
-- Modular project repository structure
-- Process data structures and workload loader
-- Command-line interface for configuring the simulator
-- FCFS scheduling algorithm
-- SJF scheduling algorithm
-- Scheduling metrics computation
-- Average turnaround, waiting, and response time calculations
-- Test workload files for validation
-- Makefile build system for compiling the project
+The suite covers:
+- Build success
+- FCFS run smoke test
+- Compare mode run smoke test
+- Argument validation for invalid RR quantum
+- MLFQ config requirement enforcement in normal mode
 
-The simulator can now successfully compile, load workload files, execute scheduling algorithms, and compute performance metrics.
+Additional manual scenarios:
+- Same-arrival workloads
+- Idle-gap workloads
+- Larger preemptive workloads for Gantt behavior
 
----
+## 7. Known Limitations
 
-# 5. Development Phases
+- Single CPU only.
+- No I/O blocking or multi-core modeling.
+- ASCII console output only.
+- Compare mode summary reports aggregate metrics only.
 
-The laboratory activity follows a four-week development timeline consisting of progress reports and a final defense.
+## 8. Summary
 
-## Phase 1 — System Design and Setup
-### Week 1
-
-#### Objective: 
-- Establish the architectural foundation of the simulator.
-
-#### Tasks:
-- Analyze scheduling requirements
-- Design system architecture
-- Create repository structure
-- Define process data structures
-- Define scheduler state structures
-- Implement workload parser
-- Set up Makefile build system
-- Create initial documentation
-
-#### Deliverables:
-- Project folder structure
-- Initial commits in repository
-- Design documentation (`design.md`)
-- Process data structure definition
-
-#### Expected Output:
-- A compilable program skeleton capable of loading workloads.
-
----
-
-## Phase 2 — Functional Prototype
-### Week 2
-
-#### Objective: 
-- Implement core scheduling algorithms and the simulation engine.
-
-#### Tasks:
-- Implement simulation time loop
-- Implement ready queue logic
-- Implement FCFS scheduler
-- Implement SJF scheduler
-- Implement command-line argument parsing
-
-#### Status:
-- FCFS and SJF schedulers have been successfully implemented and verified using multiple workload tests. Remaining algorithms will be implemented in the next phase.
-
-#### Deliverables:
-- Functional prototype
-- Working implementations of basic algorithms
-- Documented source code
-- Demonstration of scheduler outputs
-
-#### Expected Output:
-- Simulator capable of running scheduling algorithms and displaying execution traces.
-
----
-
-## Phase 3 — Complete Implementation
-### Week 3
-
-#### Objective: 
-- Extend the simulator with metrics, visualization, and advanced scheduling.
-
-#### Tasks:
-- Implement scheduling metrics calculations
-- Implement ASCII Gantt chart generation
-- Implement comparison mode across algorithms
-- Implement Multi-Level Feedback Queue (MLFQ)
-- Implement priority boost mechanism
-- Implement queue demotion logic
-- Implement MLFQ allotment tracking
-
-#### Deliverables:
-- Full algorithm implementations
-- Metrics output
-- Visualization of scheduling results
-- Test workloads and validation
-
-#### Expected Output:
-- Fully functional simulator capable of analyzing scheduling performance.
-
----
-
-## Phase 4 — Testing and Defense Preparation
-### Week 4
-
-#### Objective:
-- Validate correctness and prepare for laboratory defense.
-
-#### Tasks:
-- Implement automated test suite
-- Test edge cases
-- Verify correctness of scheduling algorithms
-- Perform performance analysis on workloads
-- Generate demonstration outputs
-- Prepare screenshots and logs
-- Finalize documentation
-
-#### Deliverables:
-- Automated test scripts
-- Test workload files
-- Output logs
-- Repository ready for submission
-- Defense-ready implementation
-
-#### Expected Output:
-- Stable simulator implementation ready for demonstration and evaluation.
-
----
-
-# 6. Testing Strategy
-
-Testing will include both correctness verification and edge-case analysis.
-
-## Test Cases
-
-The following scenarios will be tested:
-
-- Single process workloads
-- Simultaneous process arrivals
-- Identical burst times
-- Zero burst-time processes
-- Long workloads with many processes
-- Mixed workloads (short and long jobs)
-
-The automated test suite will run each scheduling algorithm and verify expected metrics.
-
----
-
-# 7. Future Improvements
-
-Potential improvements beyond the lab requirements include:
-
-- Graphical visualization of Gantt charts
-- Interactive workload generation
-- Additional scheduling algorithms
-- Performance benchmarking tools
-
----
-
-# 8. Summary
-
-This project implements a modular CPU scheduling simulator that demonstrates the behavior and trade-offs of different scheduling algorithms. The phased development plan ensures that the system is built incrementally, allowing for testing, iteration, and refinement throughout the development process.
+The simulator is complete for the target lab scope: all required schedulers are implemented, compare mode is operational, and documentation/testing artifacts are now aligned with the codebase.
 
 
